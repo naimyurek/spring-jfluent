@@ -126,6 +126,8 @@ Distributed under the **Apache License 2.0**. See `LICENSE` for more information
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/naimyurek">Naim Yürek</a>
+  Made with ❤️ 
+    <a href="https://github.com/naimyurek">Naim Yürek</a>
+    <a href="https://github.com/sedatgirgin">Sedat Girgin</a>
 </p>
 
