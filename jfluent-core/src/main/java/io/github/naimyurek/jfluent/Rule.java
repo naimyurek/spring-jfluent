@@ -17,9 +17,12 @@
 package io.github.naimyurek.jfluent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public class Rule<T, K> {
 
@@ -31,10 +34,97 @@ public class Rule<T, K> {
         this.propertyGetter = propertyGetter;
     }
 
+    public Rule<T, K> withMessage(String message) {
+        if (!errorMessages.isEmpty()) {
+            errorMessages.set(errorMessages.size() - 1, message);
+        }
+        return this;
+    }
+
     public Rule<T, K> notNull() {
         predicates.add(p -> p != null);
         errorMessages.add("must not be null.");
         return this;
+    }
+
+    public Rule<T, K> notEmpty() {
+        return must(value -> {
+            if (value == null) return false;
+            if (value instanceof CharSequence) return ((CharSequence) value).length() > 0;
+            if (value instanceof Collection) return !((Collection<?>) value).isEmpty();
+            if (value instanceof Map) return !((Map<?, ?>) value).isEmpty();
+            if (value instanceof Object[]) return ((Object[]) value).length > 0;
+            return true;
+        }, "must not be empty.");
+    }
+
+    public Rule<T, K> length(int min, int max) {
+        return must(value -> {
+            if (value == null) return true;
+            if (value instanceof CharSequence) {
+                int length = ((CharSequence) value).length();
+                return length >= min && length <= max;
+            }
+            return false;
+        }, "must be between " + min + " and " + max + " characters.");
+    }
+
+    @SuppressWarnings("unchecked")
+    public Rule<T, K> greaterThan(K min) {
+        return must(value -> {
+            if (value == null) return true;
+            if (min instanceof Comparable) {
+                return ((Comparable<K>) min).compareTo(value) < 0;
+            }
+            return false;
+        }, "must be greater than " + min + ".");
+    }
+
+    @SuppressWarnings("unchecked")
+    public Rule<T, K> lessThan(K max) {
+        return must(value -> {
+            if (value == null) return true;
+            if (max instanceof Comparable) {
+                return ((Comparable<K>) max).compareTo(value) > 0;
+            }
+            return false;
+        }, "must be less than " + max + ".");
+    }
+
+    @SuppressWarnings("unchecked")
+    public Rule<T, K> greaterThanOrEqualTo(K min) {
+        return must(value -> {
+            if (value == null) return true;
+            if (min instanceof Comparable) {
+                return ((Comparable<K>) min).compareTo(value) <= 0;
+            }
+            return false;
+        }, "must be greater than or equal to " + min + ".");
+    }
+
+    @SuppressWarnings("unchecked")
+    public Rule<T, K> lessThanOrEqualTo(K max) {
+        return must(value -> {
+            if (value == null) return true;
+            if (max instanceof Comparable) {
+                return ((Comparable<K>) max).compareTo(value) >= 0;
+            }
+            return false;
+        }, "must be less than or equal to " + max + ".");
+    }
+
+    public Rule<T, K> matches(String regex) {
+        return must(value -> {
+            if (value == null) return true;
+            if (value instanceof CharSequence) {
+                return Pattern.compile(regex).matcher((CharSequence) value).matches();
+            }
+            return false;
+        }, "must match pattern " + regex + ".");
+    }
+
+    public Rule<T, K> emailAddress() {
+        return matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$").withMessage("must be a valid email address.");
     }
 
     public Rule<T, K> must(Predicate<K> predicate, String errorMessage) {
