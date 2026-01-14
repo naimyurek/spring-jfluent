@@ -17,17 +17,27 @@
 package io.github.naimyurek.jfluent.demo.controller;
 
 import io.github.naimyurek.jfluent.demo.model.Customer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.Validator;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/customers")
 public class CustomerController {
+
+    @Autowired
+    @Qualifier("customerValidatorAdapter")
+    private Validator validator;
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.addValidators(validator);
+    }
 
     @PostMapping
     public ResponseEntity<String> createCustomer(@Valid @RequestBody Customer customer) {

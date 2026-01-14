@@ -16,7 +16,9 @@
 
 package io.github.naimyurek.jfluent.starter;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
@@ -27,11 +29,15 @@ public class JFluentRegistrar implements ImportBeanDefinitionRegistrar {
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        List<String> basePackages = AutoConfigurationPackages.get(registry);
-        JFluentAutoConfiguration.setBasePackages(basePackages.toArray(new String[0]));
+        if (registry instanceof BeanFactory) {
+            List<String> basePackages = AutoConfigurationPackages.get((BeanFactory) registry);
+            JFluentAutoConfiguration.setBasePackages(basePackages.toArray(new String[0]));
+        }
 
         if (!registry.containsBeanDefinition("jFluentAutoConfiguration")) {
-            registry.registerBeanDefinition("jFluentAutoConfiguration", new org.springframework.beans.factory.support.GenericBeanDefinition(JFluentAutoConfiguration.class));
+            GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+            beanDefinition.setBeanClass(JFluentAutoConfiguration.class);
+            registry.registerBeanDefinition("jFluentAutoConfiguration", beanDefinition);
         }
     }
 }
