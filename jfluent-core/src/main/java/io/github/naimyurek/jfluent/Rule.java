@@ -114,10 +114,11 @@ public class Rule<T, K> {
     }
 
     public Rule<T, K> matches(String regex) {
+        Pattern pattern = Pattern.compile(regex);
         return must(value -> {
             if (value == null) return true;
             if (value instanceof CharSequence) {
-                return Pattern.compile(regex).matcher((CharSequence) value).matches();
+                return pattern.matcher((CharSequence) value).matches();
             }
             return false;
         }, "must match pattern " + regex + ".");
